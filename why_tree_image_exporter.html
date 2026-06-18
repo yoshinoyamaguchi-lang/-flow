@@ -1,0 +1,272 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:sans-serif;}
+.ctrl{display:flex;gap:8px;padding:12px 8px;flex-wrap:wrap;align-items:center;}
+.tab-btn{padding:6px 14px;font-size:12px;border-radius:20px;border:0.5px solid #ccc;background:transparent;color:#555;cursor:pointer;font-family:inherit;}
+.tab-btn.active{background:#f0ede8;color:#222;border-color:#888;font-weight:500;}
+.dl-btn{margin-left:auto;padding:7px 16px;font-size:12px;border-radius:8px;border:0.5px solid #888;background:transparent;color:#333;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
+.dl-btn:hover{background:#f5f5f0;}
+#status{font-size:11px;color:#888;padding:0 8px;}
+#canvas-wrap{overflow-x:auto;padding:8px;}
+canvas{display:block;border-radius:8px;}
+</style>
+
+<div class="ctrl" id="tabs-bar"></div>
+<div id="status"></div>
+<div id="canvas-wrap"><canvas id="c"></canvas></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const TREES = [
+  {
+    tab:"① 未回収債権の発生抑止",
+    problem:"未回収債権が発生している",
+    branches:[
+      {l1:"過去の貸倒先への\n再契約が防げていない",l2:"社内ブラックリストの\n整備と自動チェックがない",l3:["ブラックリストの\n定義・登録基準が未策定","受注時の自動チェック\n機能が未実装"]},
+      {l1:"請求先への連絡が届かず\n支払い遅延が発生",l2:"担当者・連絡先情報の\n更新・取得が不十分",l3:["定期的な請求先情報\n確認フローがない","申込時のCC連絡先\n（最大3件）取得が任意"]},
+      {l1:"顧客が請求額・\n支払い時期を把握していない",l2:"新規成約・更新時に\n請求情報が伝わっていない",l3:["AM/AMSDが商談時に\n請求情報を伝えていない","サンコン・ロッコン\nメールに請求情報がない"]},
+      {l1:"営業担当の督促・回収\nルール理解と当事者意識が不足",l2:"強制解約の損失が担当営業\n成績に反映されない",l3:["強制解約の実績計上\nルールが統一されていない","債権化後の対応権限・\n期間ルールが不明確"]}
+    ]
+  },
+  {
+    tab:"② 債権管理指標の分析基盤",
+    problem:"債権管理の分析・モニタリングができていない",
+    branches:[
+      {l1:"回収実績の\nモニタリングができていない",l2:"回収実績データの\n集計・可視化の仕組みがない",l3:["モニタリング運用が\n未定着","回収実績の\n分析整備が未実施"]},
+      {l1:"債権化・遅延の\n要因把握ができていない",l2:"債権化・遅延理由の\n記録運用が未整備",l3:["Salesforceの\n項目が未整備","理由データの分析・\nモニタリング運用がない"]},
+      {l1:"事業として許容する\n債権リスクの指標が未定義",l2:"許容貸倒額・目標値が\n設計されていない",l3:["事業としての許容\n貸倒額が未確認","許容貸倒額から逆算した\n目標が未設計"]}
+    ]
+  },
+  {
+    tab:"③ オペレーション整備",
+    problem:"債権管理オペレーションに課題がある",
+    branches:[
+      {l1:"債権管理ルール・フローが\n標準化されていない",l2:"督促・解約後フローの\n整備が未完了",l3:["サービス停止・強制解約\nのエスカレが未整備","強制解約後フローが\n未整備"]},
+      {l1:"債権管理業務が\n属人化している",l2:"マニュアル・ナレッジの\n整備が不十分",l3:["マニュアルが\n整備されていない","ナレッジ格納庫が\n整備されていない"]},
+      {l1:"債権管理業務の\n工数が非効率",l2:"メール・SF・連携作業の\n効率化が未実施",l3:["一斉メール・テンプレが\n未整備","Salesforce項目の\n定義が未整理"]},
+      {l1:"営業が債権ルール・\nフローを知らない",l2:"情報共有・周知の\n仕組みが不十分",l3:["ナレポ内容が\n未更新","エスカレ周知が\n徹底されていない"]}
+    ]
+  }
+];
+
+const COLORS = {
+  bg:"#ffffff",
+  probFill:"#f5f4f0", probStroke:"#aaa8a0", probText:"#1a1a18",
+  l1Fill:"#FAECE7", l1Stroke:"#F0997B", l1Text:"#993C1D",
+  l2Fill:"#FAEEDA", l2Stroke:"#EF9F27", l2Text:"#854F0B",
+  l3Fill:"#E1F5EE", l3Stroke:"#5DCAA5", l3Text:"#0F6E56",
+  why:"#aaa", line:"#ccc",
+  legBg:"#fafaf8", legBorder:"#e0ddd8",
+};
+
+const SCALE = 2;
+const W = 1200;
+const PAD = 28;
+const FONT = "14px 'Hiragino Sans', 'Noto Sans JP', sans-serif";
+const FONTS = "11px 'Hiragino Sans', 'Noto Sans JP', sans-serif";
+const FONTB = "500 14px 'Hiragino Sans', 'Noto Sans JP', sans-serif";
+const RX = 8;
+
+function wrapText(ctx, text, maxW) {
+  const lines = text.split('\n');
+  return lines;
+}
+
+function measureBox(ctx, lines, padding=16) {
+  ctx.font = FONT;
+  let maxW = 0;
+  lines.forEach(l => { const w = ctx.measureText(l).width; if(w>maxW) maxW=w; });
+  return { w: maxW + padding*2, h: lines.length * 18 + padding*1.4 };
+}
+
+function drawRRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill();
+  ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke();
+}
+
+function drawBox(ctx, cx, y, lines, fill, stroke, textColor, font) {
+  ctx.font = font || FONT;
+  let maxW = 0;
+  lines.forEach(l => { const m = ctx.measureText(l).width; if(m>maxW) maxW=m; });
+  const bw = Math.max(maxW + 32, 180);
+  const bh = lines.length * 20 + 20;
+  const bx = cx - bw/2;
+  drawRRect(ctx, bx, y, bw, bh, RX, fill, stroke);
+  ctx.fillStyle = textColor;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  lines.forEach((l, i) => {
+    ctx.fillText(l, cx, y + 10 + (i+0.5)*20);
+  });
+  return { bx, by:y, bw, bh };
+}
+
+function drawLine(ctx, x1,y1,x2,y2){
+  ctx.beginPath(); ctx.strokeStyle=COLORS.line; ctx.lineWidth=1;
+  ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+}
+
+function drawWhy(ctx, cx, y){
+  ctx.font = FONTS; ctx.fillStyle=COLORS.why; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText("なぜ？", cx, y);
+}
+
+function drawLegend(ctx, y, w){
+  const items = [
+    {color:COLORS.l1Fill, stroke:COLORS.l1Stroke, text:"第1層（直接原因）", tc:COLORS.l1Text},
+    {color:COLORS.l2Fill, stroke:COLORS.l2Stroke, text:"第2層（中間原因）", tc:COLORS.l2Text},
+    {color:COLORS.l3Fill, stroke:COLORS.l3Stroke, text:"第3層（根本原因）", tc:COLORS.l3Text},
+  ];
+  const lw=220, lh=36, gap=16, total=items.length*(lw+gap)-gap;
+  let sx=(w-total)/2;
+  drawRRect(ctx, sx-12, y-8, total+24, lh+16, 8, COLORS.legBg, COLORS.legBorder);
+  items.forEach(it => {
+    drawRRect(ctx, sx, y, lw, lh, 6, it.color, it.stroke);
+    ctx.font = FONTS; ctx.fillStyle=it.tc; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(it.text, sx+lw/2, y+lh/2);
+    sx += lw+gap;
+  });
+}
+
+function drawTree(tree, idx) {
+  const branches = tree.branches;
+  const nb = branches.length;
+  const colW = Math.floor((W - PAD*2) / nb);
+  
+  const offscreen = document.createElement('canvas');
+  offscreen.width = W * SCALE;
+  offscreen.height = 100;
+  const ctx0 = offscreen.getContext('2d');
+  ctx0.scale(SCALE, SCALE);
+
+  let y = PAD + 10;
+  const probLines = tree.problem.split('\n');
+  const probH = probLines.length * 20 + 20;
+  y += probH;
+  y += 8 + 14 + 8;
+
+  const branchTops = [];
+  let maxY = 0;
+  branches.forEach((b, i) => {
+    let by = y;
+    const l1Lines = b.l1.split('\n');
+    const l1H = l1Lines.length * 20 + 20;
+    by += l1H;
+    by += 8 + 14 + 8;
+    const l2Lines = b.l2.split('\n');
+    const l2H = l2Lines.length * 20 + 20;
+    by += l2H;
+    by += 8 + 14 + 8;
+    b.l3.forEach(l3 => {
+      const l3Lines = l3.split('\n');
+      by += l3Lines.length * 20 + 20 + 6;
+    });
+    if(by > maxY) maxY = by;
+  });
+
+  const H = maxY + 60 + 52;
+
+  const cv = document.getElementById('c');
+  cv.width = W * SCALE;
+  cv.height = H * SCALE;
+  cv.style.width = W + 'px';
+  cv.style.height = H + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.font = "500 13px 'Hiragino Sans','Noto Sans JP',sans-serif";
+  ctx.fillStyle = "#888"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText("未回収債権 Whyツリー — " + tree.tab, PAD, 20);
+
+  let curY = PAD + 28;
+  const probLines2 = tree.problem.split('\n');
+  const probBx = drawBox(ctx, W/2, curY, probLines2, COLORS.probFill, COLORS.probStroke, COLORS.probText, FONTB);
+  curY += probBx.bh;
+
+  const hLineY = curY + 22;
+  drawLine(ctx, W/2, curY, W/2, hLineY - 12);
+  drawWhy(ctx, W/2, curY + 8);
+
+  const colCenters = branches.map((_, i) => PAD + colW * i + colW / 2);
+  const leftMost = colCenters[0];
+  const rightMost = colCenters[colCenters.length-1];
+  drawLine(ctx, leftMost, hLineY, rightMost, hLineY);
+  colCenters.forEach(cx => drawLine(ctx, cx, hLineY, cx, hLineY + 10));
+
+  curY = hLineY + 10;
+
+  branches.forEach((b, i) => {
+    const cx = colCenters[i];
+    let by = curY;
+
+    const l1Lines = b.l1.split('\n');
+    const l1Box = drawBox(ctx, cx, by, l1Lines, COLORS.l1Fill, COLORS.l1Stroke, COLORS.l1Text, FONT);
+    by += l1Box.bh;
+
+    drawLine(ctx, cx, by, cx, by+8);
+    drawWhy(ctx, cx, by+14);
+    by += 22;
+
+    const l2Lines = b.l2.split('\n');
+    const l2Box = drawBox(ctx, cx, by, l2Lines, COLORS.l2Fill, COLORS.l2Stroke, COLORS.l2Text, FONT);
+    by += l2Box.bh;
+
+    drawLine(ctx, cx, by, cx, by+8);
+    drawWhy(ctx, cx, by+14);
+    by += 22;
+
+    const nl3 = b.l3.length;
+    const subW = (colW - 20) / nl3;
+    const subCenters = b.l3.map((_, j) => cx - (colW-20)/2 + subW*(j+0.5));
+
+    drawLine(ctx, subCenters[0], by, subCenters[nl3-1], by);
+    subCenters.forEach(scx => drawLine(ctx, scx, by, scx, by+6));
+
+    b.l3.forEach((l3txt, j) => {
+      const scx = subCenters[j];
+      const l3Lines = l3txt.split('\n');
+      drawBox(ctx, scx, by+6, l3Lines, COLORS.l3Fill, COLORS.l3Stroke, COLORS.l3Text, FONTS);
+    });
+  });
+
+  drawLegend(ctx, H - 52, W);
+}
+
+let current = 0;
+
+function renderTabs() {
+  const bar = document.getElementById('tabs-bar');
+  const fragment = TREES.map((t,i) =>
+    `<button class="tab-btn${i===0?' active':''}" onclick="switchTab(${i})">${t.tab}</button>`
+  ).join('');
+  bar.innerHTML = fragment + `<button class="dl-btn" onclick="download()"><span style="font-size:15px">&#8595;</span> PNG保存</button>`;
+}
+
+function switchTab(i) {
+  current = i;
+  document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  drawTree(TREES[i], i);
+}
+
+function download() {
+  const cv = document.getElementById('c');
+  const a = document.createElement('a');
+  a.download = 'why-tree-' + (current+1) + '.png';
+  a.href = cv.toDataURL('image/png');
+  a.click();
+}
+
+renderTabs();
+drawTree(TREES[0], 0);
+</script>
