@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>債権チーム 課題ツリー</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f8; color: #37352f; padding: 48px 32px; }
+
+  .center { text-align: center; }
+
+  /* ヘッダー */
+  .team-box { display: inline-block; background: #4a3f8f; color: #fff; font-size: 18px; font-weight: 700; padding: 14px 48px; border-radius: 10px; margin-bottom: 32px; }
+
+  /* Mission / Vision */
+  .mv-row { display: flex; justify-content: center; gap: 20px; margin-bottom: 12px; }
+  .mv-card { width: 280px; border-radius: 8px; padding: 14px 16px; font-size: 13px; line-height: 1.6; }
+  .mv-card .mv-label { font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+  .mv-mission { background: #ede9fb; border: 1px solid #c5bdf0; }
+  .mv-mission .mv-label { color: #4a3f8f; }
+  .mv-vision  { background: #e1f5ee; border: 1px solid #9fe1cb; }
+  .mv-vision  .mv-label { color: #0f6e56; }
+
+  .connector-label { font-size: 12px; color: #9b9a97; margin: 4px 0; }
+
+  /* 問題/観点 バッジ行 */
+  .issues-row { display: flex; justify-content: center; gap: 16px; margin: 16px 0 8px; }
+  .issue-badge { border-radius: 20px; padding: 8px 18px; font-size: 13px; font-weight: 600; text-align: center; line-height: 1.4; }
+  .issue-badge small { display: block; font-size: 11px; font-weight: 400; margin-top: 2px; }
+  .badge-purple { background: #ede9fb; border: 1.5px solid #a99ee0; color: #3c3489; }
+  .badge-amber  { background: #faeeda; border: 1.5px solid #ef9f27; color: #633806; }
+  .badge-blue   { background: #e6f1fb; border: 1.5px solid #85b7eb; color: #0c447c; }
+
+  /* 3カラム課題ツリー */
+  .tree-row { display: flex; gap: 16px; margin-top: 16px; align-items: flex-start; }
+  .tree-col { flex: 1; border-radius: 10px; padding: 16px; font-size: 13px; line-height: 1.6; }
+  .col-purple { background: #f3f1fd; border: 1.5px solid #c5bdf0; }
+  .col-amber  { background: #fdf6ec; border: 1.5px solid #f0c070; }
+  .col-blue   { background: #eef5fc; border: 1.5px solid #85b7eb; }
+
+  .col-header { font-size: 14px; font-weight: 700; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(0,0,0,0.08); }
+  .col-purple .col-header { color: #3c3489; }
+  .col-amber  .col-header { color: #633806; }
+  .col-blue   .col-header { color: #0c447c; }
+
+  /* ツリーアイテム */
+  .l1 { font-weight: 700; font-size: 13px; color: #37352f; margin: 12px 0 4px; }
+  .l1:first-child { margin-top: 0; }
+  .l2 { padding-left: 14px; border-left: 2px solid rgba(0,0,0,0.12); margin: 3px 0 3px 6px; font-size: 12px; color: #555; }
+  .l3 { padding-left: 14px; border-left: 2px solid rgba(0,0,0,0.07); margin: 2px 0 2px 20px; font-size: 12px; color: #777; }
+</style>
+</head>
+<body>
+
+<div class="center">
+  <div class="team-box">債権チーム</div>
+</div>
+
+<div class="mv-row">
+  <div class="mv-card mv-mission">
+    <div class="mv-label">Mission（存在意義）</div>
+    未回収債権の発生抑止と回収強化を通じて、事業の売上損失を防ぐ
+  </div>
+  <div class="mv-card mv-vision">
+    <div class="mv-label">Vision（ありたい姿）</div>
+    効率的かつ再現性のある債権管理体制を構築し、高い回収率と低い債権化率を実現する
+  </div>
+</div>
+
+<div class="center"><p class="connector-label">問題 / 観点</p></div>
+
+<div class="issues-row">
+  <div class="issue-badge badge-purple">① 未回収債権の発生抑止<small>低い債権化率を実現できていない</small></div>
+  <div class="issue-badge badge-amber">② 債権管理指標の分析基盤整備<small>回収実態の分析ができていない</small></div>
+  <div class="issue-badge badge-blue">③ オペレーション整備<small>実務が効率的・再現的ではない</small></div>
+</div>
+
+<div class="center"><p class="connector-label">課題ツリー</p></div>
+
+<div class="tree-row">
+
+  <!-- ① 未回収債権の発生抑止 -->
+  <div class="tree-col col-purple">
+    <div class="col-header">① 未回収債権の発生抑止</div>
+
+    <div class="l1">過去の貸し倒れ先への再契約が防げていない</div>
+    <div class="l2">社内ブラックリストの整備と受注時の自動チェック</div>
+    <div class="l3">ブラックリストの定義・登録基準の策定</div>
+    <div class="l3">受注時の自動チェック機能の実装</div>
+
+    <div class="l1">請求先への連絡が届かず支払い遅延が発生</div>
+    <div class="l2">担当者・住所・連絡先の定期更新の仕組み化</div>
+    <div class="l3">定期的な請求先情報の確認フロー整備</div>
+    <div class="l2">申込時のCC連絡先（最大3件）取得の義務化</div>
+    <div class="l3">申込書へのCC連絡先入力欄の追加</div>
+
+    <div class="l1">更新後の請求額・時期を把握しておらず支払いが遅れる</div>
+    <div class="l2">更新意向確認時に初回請求情報を顧客へ事前通知</div>
+    <div class="l3">AMSD/AMによる更新商談時に請求情報を伝える</div>
+    <div class="l3">サンコン・ロッコンメールに請求情報を記載</div>
+
+    <div class="l1">営業担当の当事者意識・行動規範が醸成されていない</div>
+    <div class="l2">督促・回収ルールを正しく把握できていない</div>
+    <div class="l3">ナレポの内容更新と営業への周知</div>
+    <div class="l2">強制解約の損失が担当営業の成績に反映されない</div>
+    <div class="l3">強制解約の実績計上ルールの統一</div>
+    <div class="l2">債権化後の対応権限・期間ルールが不明確</div>
+    <div class="l3">エスカレーションフローと担当者権限の明文化</div>
+  </div>
+
+  <!-- ② 債権管理指標の分析基盤整備 -->
+  <div class="tree-col col-amber">
+    <div class="col-header">② 債権管理指標の分析基盤整備</div>
+
+    <div class="l1">債権回収実績のモニタリング・分析ができていない</div>
+    <div class="l2">回収実績のモニタリング運用定着</div>
+    <div class="l2">回収実績の分析整備</div>
+
+    <div class="l1">債権化・回収遅延の要因を把握・分析できていない</div>
+    <div class="l2">債権化・回収遅延理由の記録運用整備</div>
+    <div class="l3">Salesforceの項目整備</div>
+    <div class="l2">債権化・回収遅延理由データの分析運用整備</div>
+    <div class="l3">仕組み整備</div>
+    <div class="l3">モニタリング運用定着</div>
+    <div class="l3">分析整備</div>
+
+    <div class="l1">許容する債権リスクに対して適切な指標が定義されていない</div>
+    <div class="l2">許容貸倒額の確認</div>
+    <div class="l3">事業としての許容貸倒額の確認</div>
+    <div class="l2">許容貸倒額から逆算しての目標設計</div>
+  </div>
+
+  <!-- ③ オペレーション整備 -->
+  <div class="tree-col col-blue">
+    <div class="col-header">③ オペレーション整備</div>
+
+    <div class="l1">債権管理ルール・フローが標準化されていない</div>
+    <div class="l2">督促ルール整備</div>
+    <div class="l3">サービス停止・強制解約に関するエスカレ整備</div>
+    <div class="l2">強制解約後のフロー整備</div>
+
+    <div class="l1">債権管理業務が属人化している</div>
+    <div class="l2">マニュアル整備</div>
+    <div class="l2">ナレッジ格納庫整備</div>
+
+    <div class="l1">債権管理業務の工数が効率化されていない</div>
+    <div class="l2">一斉メール整備</div>
+    <div class="l3">フォームでの回答による入金予定日回収</div>
+    <div class="l2">メール整備</div>
+    <div class="l3">入金完了報告の効率化</div>
+    <div class="l3">メールテンプレ改修</div>
+    <div class="l2">Salesforce整備</div>
+    <div class="l3">個社の定義整理</div>
+    <div class="l2">不達対応</div>
+    <div class="l3">営業連携時の自動投稿の効率化</div>
+
+    <div class="l1">営業が債権ルールやフローを知らない</div>
+    <div class="l2">ナレポ改修</div>
+    <div class="l2">エスカレの周知</div>
+  </div>
+
+</div>
+
+</body>
+</html>
