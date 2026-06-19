@@ -49,6 +49,51 @@
 <h1>債権回収フロー</h1>
 <p class="meta">所有者：債権チーム　最終更新：2026/06</p>
 
+<h2>フロー０ 予防パート（請求書未ダウンロードリマインド）</h2>
+
+<div class="callout" style="margin-bottom:16px">
+  <span class="callout-icon">💡</span>
+  <p class="callout-text">支払期限超過前に、請求書が未ダウンロードの企業へ先手でリマインドを行い、未払いの発生を予防する</p>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">発行月 第3週</span>
+  <div class="step-body">
+    <p class="step-title">リマインド1回目（GAS / Sendgrid）</p>
+    <p class="step-desc">Bill Oneで請求書未ダウンロードの企業を確認し、トランザクションメールで送付</p>
+    <div class="callout" style="margin-top:8px">
+      <span class="callout-icon">📄</span>
+      <p class="callout-text">文面には請求書送付メールの件名・日時・送付元アドレスを記載</p>
+    </div>
+    <div style="margin-top:10px">
+      <details>
+        <summary>返信あり</summary>
+        <div class="toggle-body">
+          <div class="step" style="margin-top:6px"><span class="badge badge-action">請求書再送依頼</span><div class="step-body"><p class="step-desc">請求書を再送対応 → 2回目リマインドはスキップ</p></div></div>
+          <div class="step"><span class="badge badge-action">送付先変更依頼</span><div class="step-body"><p class="step-desc">送付先変更対応 → 2回目リマインドはスキップ</p></div></div>
+        </div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>無反応</summary>
+        <div class="toggle-body">
+          <p class="step-desc">第4週の2回目リマインドへ進む</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">発行月 第4週</span>
+  <div class="step-body">
+    <p class="step-title">リマインド2回目（Bill One リマインド機能）</p>
+    <p class="step-desc">1回目に返信があった企業はスキップ。無反応の企業のみ対象</p>
+  </div>
+</div>
+
+<hr class="section-divider">
+
 <h2>フロー① メインフロー（支払期限超過〜サービス停止・解約）</h2>
 
 <div class="step">
