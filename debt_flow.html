@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>債権回収フロー</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #fff; color: #37352f; padding: 48px 64px; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .meta { font-size: 12px; color: #9b9a97; margin-bottom: 36px; }
+  h2 { font-size: 18px; font-weight: 600; margin: 36px 0 16px; padding-top: 20px; border-top: 1px solid #e9e9e7; }
+  .step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .badge { flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 4px; margin-top: 2px; white-space: nowrap; }
+  .badge-day    { background: #E6F1FB; color: #0C447C; }
+  .badge-action { background: #E6F1FB; color: #0C447C; }
+  .badge-check  { background: #FAEEDA; color: #633806; }
+  .badge-warn   { background: #FAECE7; color: #712B13; }
+  .badge-done   { background: #E1F5EE; color: #085041; }
+  .step-body { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .step-desc { font-size: 13px; color: #6b6b6b; }
+  .callout { display: flex; gap: 10px; align-items: flex-start; background: #f7f6f3; border-radius: 6px; padding: 10px 14px; margin: 8px 0; }
+  .callout-icon { font-size: 15px; flex-shrink: 0; }
+  .callout-text { font-size: 12px; color: #6b6b6b; line-height: 1.5; }
+  .branch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .branch-card { background: #fff; border: 1px solid #e9e9e7; border-radius: 6px; padding: 10px 14px; }
+  .branch-label { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .branch-label.yes { color: #0C447C; }
+  .branch-label.no  { color: #633806; }
+  .branch-desc { font-size: 12px; color: #6b6b6b; }
+  details { margin: 6px 0; }
+  details > summary { font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; list-style: none; display: flex; align-items: center; gap: 6px; }
+  details > summary::before { content: "▶"; font-size: 10px; color: #9b9a97; transition: transform 0.15s; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  details > summary::-webkit-details-marker { display: none; }
+  .toggle-body { padding-left: 18px; margin-top: 6px; border-left: 2px solid #e9e9e7; padding-bottom: 4px; }
+  .divider { border: none; border-top: 1px solid #e9e9e7; margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+  th { background: #f7f6f3; text-align: left; padding: 8px 12px; font-weight: 600; border: 1px solid #e9e9e7; }
+  td { padding: 8px 12px; border: 1px solid #e9e9e7; color: #37352f; }
+  ul { padding-left: 20px; margin: 4px 0; }
+  li { font-size: 13px; color: #6b6b6b; margin-bottom: 2px; }
+  .section-divider { border: none; border-top: 2px solid #e9e9e7; margin: 40px 0 0; }
+</style>
+</head>
+<body>
+
+<h1>債権回収フロー</h1>
+<p class="meta">所有者：債権チーム　最終更新：2026/06</p>
+
+<h2>フロー０ 予防パート（請求書未ダウンロードリマインド）</h2>
+
+<div class="callout" style="margin-bottom:16px">
+  <span class="callout-icon">💡</span>
+  <p class="callout-text">支払期限超過前に、請求書が未ダウンロードの企業へ先手でリマインドを行い、未払いの発生を予防する</p>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">発行月 第3週</span>
+  <div class="step-body">
+    <p class="step-title">リマインド1回目（GAS / Sendgrid）</p>
+    <p class="step-desc">Bill Oneで請求書未ダウンロードの企業を確認し、トランザクションメールで送付</p>
+    <div class="callout" style="margin-top:8px">
+      <span class="callout-icon">📄</span>
+      <p class="callout-text">文面には請求書送付メールの件名・日時・送付元アドレスを記載</p>
+    </div>
+    <div style="margin-top:10px">
+      <details>
+        <summary>返信あり</summary>
+        <div class="toggle-body">
+          <div class="step" style="margin-top:6px"><span class="badge badge-action">請求書再送依頼</span><div class="step-body"><p class="step-desc">請求書を再送対応 → 2回目リマインドはスキップ</p></div></div>
+          <div class="step"><span class="badge badge-action">送付先変更依頼</span><div class="step-body"><p class="step-desc">送付先変更対応 → 2回目リマインドはスキップ</p></div></div>
+        </div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>無反応</summary>
+        <div class="toggle-body">
+          <p class="step-desc">第4週の2回目リマインドへ進む</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">発行月 第4週</span>
+  <div class="step-body">
+    <p class="step-title">リマインド2回目（Bill One リマインド機能）</p>
+    <p class="step-desc">1回目に返信があった企業はスキップ。無反応の企業のみ対象</p>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<h2>フロー① メインフロー（支払期限超過〜サービス停止・解約）</h2>
+
+<div class="step">
+  <span class="badge badge-day">第2営業日</span>
+  <div class="step-body">
+    <p class="step-title">経理から未入金リスト受領</p>
+    <p class="step-desc">支払期限超過後、夕方に受領</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">第3営業日</span>
+  <div class="step-body">
+    <p class="step-title">Salesforceレコード作成（11時）</p>
+    <p class="step-desc">担当営業へ対応主体を確認。期限は第5営業日 11時</p>
+    <div class="branch-grid" style="margin-top:8px">
+      <div class="branch-card">
+        <p class="branch-label yes">YES → 営業対応</p>
+        <p class="branch-desc">Slack連携スレが自動作成。営業が進捗管理。入金確認後、債権チームがクローズ</p>
+      </div>
+      <div class="branch-card">
+        <p class="branch-label no">NO → 債権チーム対応</p>
+        <p class="branch-desc">以下のフローへ進む</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">第5営業日</span>
+  <div class="step-body">
+    <p class="step-title">一斉メール1回目（GAS / Sendgrid）</p>
+    <p class="step-desc">入金予定日フォーム・猶予期限・請求書変更テンプレを記載</p>
+    <div class="callout" style="margin-top:8px">
+      <span class="callout-icon">⚠️</span>
+      <p class="callout-text">申送りあり・金額1,000円以下・慎重対応案件は対象外 → 手動で個別送付</p>
+    </div>
+    <div style="margin-top:10px">
+      <details>
+        <summary>入金あり</summary>
+        <div class="toggle-body">
+          <p class="step-desc">入金完了報告メールを送付 → クローズ</p>
+        </div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>フォーム回答 or メール返信あり</summary>
+        <div class="toggle-body">
+          <div class="step" style="margin-top:6px"><span class="badge badge-action">請求書再送依頼</span><div class="step-body"><p class="step-desc">請求書を再送対応。Salesforceに記録</p></div></div>
+          <div class="step"><span class="badge badge-action">送付先変更依頼</span><div class="step-body"><p class="step-desc">送付先変更対応（フォーム回答済みが前提）。Salesforceに記録</p></div></div>
+          <div class="step"><span class="badge badge-action">入金予定日あり</span><div class="step-body"><p class="step-desc">SalesforceにフォームIDと入金予定日を記録</p></div></div>
+        </div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>無反応</summary>
+        <div class="toggle-body">
+          <p class="step-desc">第7営業日のリマインドへ進む</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-check">第7営業日</span>
+  <div class="step-body">
+    <p class="step-title">フォーム回答 or メール返信あり？（Salesforceで確認）</p>
+    <div class="branch-grid" style="margin-top:8px">
+      <div class="branch-card">
+        <p class="branch-label yes">YES → 対応継続</p>
+        <p class="branch-desc">記録済みのため2回目メールはスキップ</p>
+      </div>
+      <div class="branch-card">
+        <p class="branch-label no">NO → 2回目メール送付</p>
+        <p class="branch-desc">リマインドの文面で一斉送信</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">第10営業日</span>
+  <div class="step-body">
+    <p class="step-title">猶予期限到来</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-day">第11営業日〜</span>
+  <div class="step-body">
+    <p class="step-title">入金確認・架電</p>
+    <p class="step-desc">前日までの入金を確認（入金日当日は翌朝経理が確認・連携）</p>
+    <div class="callout" style="margin-top:8px">
+      <span class="callout-icon">📞</span>
+      <p class="callout-text">不在の場合は2〜3回架電。不在後は必ずメールも送付すること（記載内容：架電日時・未入金状況・サービス停止の可能性）</p>
+    </div>
+    <div style="margin-top:10px">
+      <details>
+        <summary>入金確認できた場合</summary>
+        <div class="toggle-body"><p class="step-desc">入金完了報告メールを送付 → クローズ</p></div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>架電で連絡がついた場合</summary>
+        <div class="toggle-body"><p class="step-desc">個別対応ルートへ（フロー②参照）</p></div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>2回以上不通の場合</summary>
+        <div class="toggle-body"><p class="step-desc">サービス停止予告メールへ進む</p></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-warn">1か月目最終週</span>
+  <div class="step-body">
+    <p class="step-title">サービス停止予告メール（最終警告）</p>
+    <p class="step-desc">「当月末日までにご入金が確認できない場合、サービスの利用を停止します」と明記</p>
+    <table style="margin-top:8px">
+      <tr><th></th><th>担当営業あり</th><th>担当営業なし</th></tr>
+      <tr><td>送信主体</td><td>営業合意のもと送付</td><td>管理部門が即時送付</td></tr>
+      <tr><td>事前対応</td><td>事前に営業へ状況連携</td><td>なし</td></tr>
+    </table>
+    <div class="callout" style="margin-top:8px">
+      <span class="callout-icon">✅</span>
+      <p class="callout-text">当月末日までに入金あり → 入金完了報告メールを送付してクローズ</p>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-warn">2か月目 第2〜3営業日</span>
+  <div class="step-body">
+    <p class="step-title">サービス停止（手動）</p>
+    <p class="step-desc">翌月第2〜3営業日以内に手動で実行</p>
+    <div style="margin-top:10px">
+      <details>
+        <summary>パターンA：入金</summary>
+        <div class="toggle-body"><p class="step-desc">着金確認後、即サービス再開</p></div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>パターンB：連絡あり</summary>
+        <div class="toggle-body"><p class="step-desc">入金確認後にサービス再開</p></div>
+      </details>
+      <hr class="divider">
+      <details>
+        <summary>パターンC：2週間無連絡・未入金</summary>
+        <div class="toggle-body"><p class="step-desc">強制解約へ</p></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-warn">停止から2週間後</span>
+  <div class="step-body">
+    <p class="step-title">強制解約</p>
+    <div style="margin-top:8px">
+      <details open>
+        <summary>① 強制解約の実行</summary>
+        <div class="toggle-body">
+          <ul><li>解約日を決定・解約処理を実行</li><li>債権チームより強制解約通知メールを顧客へ送付</li></ul>
+        </div>
+      </details>
+      <hr class="divider">
+      <details open>
+        <summary>② 違約金・サービス料の計算</summary>
+        <div class="toggle-body">
+          <p class="step-desc">解約日に沿って計算</p>
+        </div>
+      </details>
+      <hr class="divider">
+      <details open>
+        <summary>③ 以下を並行して実施</summary>
+        <div class="toggle-body">
+          <div class="step" style="margin-top:6px"><span class="badge badge-warn">郵送</span><div class="step-body"><p class="step-desc">特定記録郵便で「契約解除通知 ＋ 最終請求書」を送付</p></div></div>
+          <div class="step"><span class="badge badge-action">スキャナ返却</span><div class="step-body"><p class="step-desc">TSからスキャナ返却依頼を計5回。未返却 → スキャナ請求書を発行・郵送</p></div></div>
+        </div>
+      </details>
+      <hr class="divider">
+      <details open>
+        <summary>④ 法務連携の判定</summary>
+        <div class="toggle-body">
+          <div class="callout" style="margin-top:6px">
+            <span class="callout-icon">⚠️</span>
+            <p class="callout-text">サービス料あり or スキャナ請求書あり → 法務連携対象<br>違約金のみ（サービス料なし・スキャナ請求書なし）→ 対象外</p>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<h2>フロー② 個別対応ルート（連絡がついた場合）</h2>
+
+<div class="step">
+  <span class="badge badge-check">パターン①</span>
+  <div class="step-body">
+    <p class="step-title">「支払いを待ってほしい（猶予・延長）」</p>
+    <div style="margin-top:8px">
+      <details open>
+        <summary>1か月目の猶予（基本）</summary>
+        <div class="toggle-body"><p class="step-desc">担当者判断でOK</p></div>
+      </details>
+      <hr class="divider">
+      <details open>
+        <summary>2か月目の猶予（延長）★最重要</summary>
+        <div class="toggle-body">
+          <table style="margin-top:6px">
+            <tr><th></th><th>担当営業あり</th><th>担当営業なし</th></tr>
+            <tr><td>判断者</td><td>担当営業</td><td>債権チーム（管理部門）</td></tr>
+            <tr><td>条件</td><td>正当な理由＋具体的な支払日が握れていること</td><td>計2か月以内の明確な支払日が握れていること</td></tr>
+          </table>
+          <div class="callout" style="margin-top:8px">
+            <span class="callout-icon">⚠️</span>
+            <p class="callout-text">共通の必須条件：「約束の期日に入金が確認できなかった場合、即サービスを停止する」旨を顧客と事前に合意すること</p>
+          </div>
+        </div>
+      </details>
+      <hr class="divider">
+      <details open>
+        <summary>3か月目以降</summary>
+        <div class="toggle-body">
+          <p class="step-desc">営業部長のエスカレーション承認が必須。承認がなければ強制解約へ進める</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-check">パターン②</span>
+  <div class="step-body">
+    <p class="step-title">「払えないから解約したい（中途解約）」</p>
+    <p class="step-desc">契約更新日の1か月前までに申告がなかったため自動更新済みである旨を伝える。原則中途解約は不可。解約を進める場合は「利用期間の利用料 ＋ 残契約期間の違約金」を一括請求・回収する。</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="badge badge-check">パターン③</span>
+  <div class="step-body">
+    <p class="step-title">「年払いは厳しいから分割（月払い）にして」</p>
+    <p class="step-desc">絶対条件：利用開始日から当月までの利用料を先に一括回収する。着金確認後、次回請求分から分割・3か月払いへ変更をシステムに反映する。</p>
+  </div>
+</div>
+
+</body>
+</html>
